@@ -1,0 +1,334 @@
+---
+
+---
+
+```{r setup, include = FALSE}
+# knitr::opts_knit$set(root.dir = normalizePath(""))
+```
+
+# Dependencies
+
+
+```{r load-packages, message=FALSE, warning=FALSE}
+
+# data manipulation
+library(data.table)
+library(purrr)
+library(magrittr)
+
+# relative file paths
+library(here)
+
+# string manipulation and UUID generation
+library(stringr)
+library(uuid)
+
+# R interface to Postgres
+library(DBI)
+library(RPostgres)
+
+# utility functions
+library(brainstorm)
+
+```
+
+Note that directories are relative to the R project path.
+
+```{r define-directores}
+
+# set directories
+data_dir = here("/Users/spartan/Documents/synthea/output/csv")
+
+```
+
+Define reader function.
+
+```{r file-reader}
+
+# convenience function to print column names
+print_colnames = function(data_table) {
+  cat(paste0('"', paste0(colnames(data_table), collapse = '", "'), '"'))
+}
+
+# function to read and clean files
+file_reader = function(file_name, label, camelCase = T) {
+  
+  # read table
+  data_table = fread(here(file_name))
+  
+  # filter empty values and column names
+  # data_table[data_table == ""] <- NA
+  colnames(data_table) = str_to_lower(colnames(data_table))
+  
+  # if not camelCase, return already
+  if (!camelCase) { return(data_table) }
+  
+  # apply conditional filters generated with
+  # print_colnames(patient_data$TABLE)
+  
+  # add primary keys
+  if(label %in% c("Allergies", "Conditions", "Devices", "Immunizations", "Medications", "Observations", "PayerTransitions", "Procedures", "Supplies")) {
+    data_table[, id := UUIDgenerate(n = nrow(data_table), output = "string")]
+    # data_table[, id := as.character(id)]
+    setcolorder(data_table, "id")
+  }
+  
+  # if ("patient" %in% colnames(data_table)) { data_table[, patient := as.character(patient)] }
+  # if ("encounter" %in% colnames(data_table)) { data_table[, encounter := as.character(encounter)] }
+  # if ("id" %in% colnames(data_table)) { data_table[, id := as.character(id)] }
+  
+  # no need to modify allergies, conditions, devices, observations, organizations, providers
+  
+  # filter
+  if(label == "CarePlans") {
+    setnames(data_table, c("reasoncode", "reasondescription"), c("reasonCode", "reasonDescription"))
+    
+  } else if(label == "Claims") {
+    # note that I rename patientId and providerId to patient and provider
+    setnames(data_table, colnames(data_table),
+             c("id", "patient", "provider", "primaryPatientInsuranceId", "secondaryPatientInsuranceId", "departmentId", "patientDepartmentId", "diagnosis1", "diagnosis2", "diagnosis3", "diagnosis4", "diagnosis5", "diagnosis6", "diagnosis7", "diagnosis8", "referringProviderId", "appointmentId", "currentIllnessDate", "serviceDate", "supervisingProviderId", "status1", "status2", "statusp", "outstanding1", "outstanding2", "outstandingP", "lastBilledDate1", "lastBilledDate2", "lastBilledDateP", "healthcareClaimTypeId1", "healthcareClaimTypeId2"))
+    
+    # replace NA values
+    data_table[primaryPatientInsuranceId == "0", primaryPatientInsuranceId := NA]
+    data_table[secondaryPatientInsuranceId == "0", secondaryPatientInsuranceId := NA]
+    data_table[, referringProviderId := as.character(referringProviderId)]
+    
+  } else if(label == "ClaimsTransactions") {
+    # note that I rename patientId and providerId to patient and provider
+    setnames(data_table, colnames(data_table),
+             c("id", "claimId", "chargeId", "patient", "type", "amount", "method", "fromDate", "toDate", "placeOfService", "procedureCode", "modifier1", "modifier2", "diagnosisRef1", "diagnosisRef2", "diagnosisRef3", "diagnosisRef4", "units", "departmentId", "notes", "unitAmount", "transferOutId", "transferType", "payments", "adjustments", "transfers", "outstanding", "appointmentId", "lineNote", "patientInsuranceId", "feeScheduleId", "provider", "supervisingProviderId"))
+    
+  } else if(label == "Encounters") {
+    setnames(data_table, c("encounterclass", "base_encounter_cost", "total_claim_cost", "payer_coverage", "reasoncode", "reasondescription"), c("encounterClass", "baseEncounterCost", "totalClaimCost", "payerCoverage", "reasonCode", "reasonDescription"))
+    
+  } else if(label == "ImagingStudies") {
+    setnames(data_table, colnames(data_table),
+             c("id", "date", "patient", "encounter", "seriesUid", "bodySiteCode", "bodySiteDescription", "modalityCode", "modalityDescription", "instanceUid", "sopCode", "sopDescription", "procedureCode"))
+    
+  } else if(label == "Immunizations") {
+    setnames(data_table, "base_cost", "baseCost")
+  
+  } else if(label == "Medications") {
+    setnames(data_table, colnames(data_table),
+             c("id", "start", "stop", "patient", "payer", "encounter", "code", "description", "baseCost", "payerCoverage", "dispenses", "totalCost", "reasonCode", "reasonDescription"))
+    
+  } else if(label == "Observations") {
+    data_table[encounter == "", encounter := NA]
+    
+  } else if(label == "Patients") {
+    setnames(data_table, c("birthdate", "deathdate", "birthplace", "healthcare_expenses", "healthcare_coverage"), c("birthDate", "deathDate", "birthPlace", "healthcareExpenses", "healthcareCoverage"))
+    
+    # remove numbers from names
+    data_table[, first := gsub("[0-9.]", "", first)]
+    data_table[, last := gsub("[0-9.]", "", last)]
+    data_table[, maiden := gsub("[0-9.]", "", maiden)]
+    
+  } else if(label == "PayerTransitions") {
+    setnames(data_table, colnames(data_table), c("id", "patient", "memberId", "startDate", "endDate", "payer", "secondaryPayer", "planOwnership", "ownerName"))
+    
+    # replace NA values
+    data_table[secondaryPayer == "", secondaryPayer := NA]
+  
+  } else if(label == "Payers") {
+    setnames(data_table, colnames(data_table), c("id", "name", "ownership", "address", "city", "stateHeadquartered", "zip", "phone", "amountCovered", "amountUncovered", "revenue", "coveredEncounters", "uncoveredEncounters", "coveredMedications", "uncoveredMedications", "coveredProcedures", "uncoveredProcedures", "coveredImmunizations", "uncoveredImmunizations", "uniqueCustomers", "qolsAvg", "memberMonths"))
+    
+  } else if(label == "Procedures") {
+    setnames(data_table, c("base_cost", "reasoncode", "reasondescription"), c("baseCost", "reasonCode", "reasonDescription"))
+    
+  }
+  
+  # return table
+  return(data_table)
+  
+}
+
+```
+
+Read files and convert to camel case, which is the PostgreSQL standard.
+
+```{r read-files}
+
+# generate file list
+patient_files = list.files(data_dir, include.dirs = F, full.names = T, pattern = ".csv")
+new_names = gsub(".csv", "", basename(patient_files), fixed = T) %>%
+  str_to_title() %>%
+  strsplit("_") %>%
+  map_chr(function(x) {ifelse(is.na(x[2]), x[1], paste0(x[1], str_to_title(x[2])))})
+new_names[new_names == "Careplans"] <- "CarePlans"
+names(patient_files) = new_names
+
+# read files and convert to camel case
+patient_data = imap(patient_files, ~file_reader(.x, .y, camelCase = T))
+# count number of columns via map(patient_data, ~length(colnames(.x)))
+patient_data
+```
+
+The tables are specified as follows.
+
+| File | Description |
+|------|-------------|
+| `allergies.csv` | Patient allergy data. |
+| `careplans.csv` | Patient care plan data, including goals. |
+| `claims.csv` | Patient claim data. |
+| `claims_transactions.csv` | Transactions per line item per claim. |
+| `conditions.csv` | Patient conditions or diagnoses. |
+| `devices.csv` | Patient-affixed permanent and semi-permanent devices. |
+| `encounters.csv` | Patient encounter data. |
+| `imaging_studies.csv` | Patient imaging metadata. |
+| `immunizations.csv` | Patient immunization data. |
+| `medications.csv` | Patient medication data. |
+| `observations.csv` | Patient observations including vital signs and lab reports. |
+| `organizations.csv` | Provider organizations including hospitals. |
+| `patients.csv` | Patient demographic data. |
+| `payer_transitions.csv` | Payer Transition data (i.e. changes in health insurance). |
+| `payers.csv` | Payer organization data. |
+| `procedures.csv` | Patient procedure data including surgeries. |
+| `providers.csv` | Clinicians that provide patient care. |
+| `supplies.csv` | Supplies used in the provision of care. |
+
+Write tables to PostgreSQL database.
+
+```{r write-database}
+
+
+
+# open connection
+con = dbConnect(drv = RPostgres::Postgres(), dbname = "ehr_database") #transfer locally
+
+# write tables
+for (i in 1:length(patient_data)) {
+  
+  # subset table
+  patient_data_table = patient_data[[i]]
+  table_name = names(patient_data)[i]
+  
+  # write to database
+  dbWriteTable(con, name = table_name, value = patient_data_table)
+   
+  # remove table
+  # dbRemoveTable(con, name = table_name)
+  
+}
+
+```
+
+Execute SQL queries to create keys.
+
+```{r sql-queries}
+
+# write SQL queries to set keys
+queries = list(
+  
+  # make primary keys first
+  'ALTER TABLE "CarePlans" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Claims" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "ClaimsTransactions" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Encounters" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Organizations" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Patients" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Payers" ADD PRIMARY KEY (id);',
+  # 'ALTER TABLE "PayerTransitions" ADD PRIMARY KEY ("memberId");', # added primary key
+  'ALTER TABLE "Providers" ADD PRIMARY KEY (id);',
+  
+  # new primary keys: allergies, conditions, devices, immunizations, medications, observations, payerTransitions, procedures, supplies, imagingStudies
+  'ALTER TABLE "Allergies" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Conditions" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Devices" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Immunizations" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Medications" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Observations" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "PayerTransitions" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Procedures" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "Supplies" ADD PRIMARY KEY (id);',
+  'ALTER TABLE "ImagingStudies" ADD PRIMARY KEY (id);',
+  
+  # allergies
+  'ALTER TABLE "Allergies" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  
+  # carePlans
+  'ALTER TABLE "CarePlans" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "CarePlans" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # claims
+  'ALTER TABLE "Claims" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Claims" ADD FOREIGN KEY (provider) REFERENCES "Providers"(id);',
+  'ALTER TABLE "Claims" ADD FOREIGN KEY ("primaryPatientInsuranceId") REFERENCES "Payers"(id);',
+  'ALTER TABLE "Claims" ADD FOREIGN KEY ("secondaryPatientInsuranceId") REFERENCES "Payers"(id);',
+  'ALTER TABLE "Claims" ADD FOREIGN KEY ("referringProviderId") REFERENCES "Providers"(id);',
+  'ALTER TABLE "Claims" ADD FOREIGN KEY ("appointmentId") REFERENCES "Encounters"(id);',
+  'ALTER TABLE "Claims" ADD FOREIGN KEY ("supervisingProviderId") REFERENCES "Providers"(id);',
+  
+  # claimsTransactions
+  'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY ("claimId") REFERENCES "Claims"(id);',
+  'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY ("placeOfService") REFERENCES "Organizations"(id);',
+  'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY ("appointmentId") REFERENCES "Encounters"(id);',
+  # 'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY ("patientInsuranceId") REFERENCES "PayerTransitions"("memberId");',
+  'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY (provider) REFERENCES "Providers"(id);',
+  'ALTER TABLE "ClaimsTransactions" ADD FOREIGN KEY ("supervisingProviderId") REFERENCES "Providers"(id);',
+  
+  # conditions
+  'ALTER TABLE "Conditions" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Conditions" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # devices
+  'ALTER TABLE "Devices" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Devices" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # encounters
+  'ALTER TABLE "Encounters" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Encounters" ADD FOREIGN KEY (organization) REFERENCES "Organizations"(id);',
+  'ALTER TABLE "Encounters" ADD FOREIGN KEY (provider) REFERENCES "Providers"(id);',
+  'ALTER TABLE "Encounters" ADD FOREIGN KEY (payer) REFERENCES "Payers"(id);',
+  
+  # imagingStudies
+  'ALTER TABLE "ImagingStudies" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "ImagingStudies" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # immunizations
+  'ALTER TABLE "Immunizations" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Immunizations" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # medications
+  'ALTER TABLE "Medications" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Medications" ADD FOREIGN KEY (payer) REFERENCES "Payers"(id);',
+  'ALTER TABLE "Medications" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # observations
+  'ALTER TABLE "Observations" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Observations" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # payerTransitions
+  'ALTER TABLE "PayerTransitions" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "PayerTransitions" ADD FOREIGN KEY (payer) REFERENCES "Payers"(id);',
+  'ALTER TABLE "PayerTransitions" ADD FOREIGN KEY ("secondaryPayer") REFERENCES "Payers"(id);',
+  
+  # procedures
+  'ALTER TABLE "Procedures" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Procedures" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);',
+  
+  # providers
+  'ALTER TABLE "Providers" ADD FOREIGN KEY (organization) REFERENCES "Organizations"(id);',
+  
+  # supplies
+  'ALTER TABLE "Supplies" ADD FOREIGN KEY (patient) REFERENCES "Patients"(id);',
+  'ALTER TABLE "Supplies" ADD FOREIGN KEY (encounter) REFERENCES "Encounters"(id);'
+  
+)
+
+```
+
+Execute queries.
+
+```{r execute-queries}
+
+# walk across and execute queries
+for (query in queries){
+  data_query = dbSendQuery(con, query)
+  dbClearResult(data_query)
+}
+  
+# disconnect from the database
+dbDisconnect(con)
+
+```
