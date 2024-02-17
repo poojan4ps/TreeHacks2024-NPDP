@@ -1,0 +1,15 @@
+# requirements.txt
+
+# Dependencies required for installing packages
+
+setuptools==57.5.0
+wheel==0.36.2
+pip==21.2.4
+
+
+# Flask and Flask-SQLAlchemy
+Flask==3.0.2
+Flask-SQLAlchemy==3.0.2
+pg8000
+
+
