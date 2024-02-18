@@ -196,11 +196,11 @@
                 if (data.success) {
                     alert('Patient picked successfully!');
                     closeModal();
-                    // Optionally, you can refresh the appointments list after picking the patient
-                    // fetch('/get_appointments')
-                    //    .then(response => response.json())
-                    //    .then(appointments => displayAppointments(appointments))
-                    //    .catch(error => console.error('Error:', error));
+                    
+                    fetch('/get_appointments')
+                        .then(response => response.json())
+                        .then(appointments => displayAppointments(appointments))
+                        .catch(error => console.error('Error:', error));
                 } else {
                     alert('Failed to pick patient. Please try again.');
                 }
