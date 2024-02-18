@@ -6,91 +6,90 @@
     <title>Dashboard</title>
     <!-- Add this script tag to the head section of your HTML file -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJGiMif1S18Ks4F4CfUM5-tse-RnfGXZo&callback=initMap&libraries=places&v=weekly"></script>
-    <style> 
-       body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    padding: 20px;
-    margin: 0;
-}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            margin: 0;
+        }
 
-h1, h2, h3 {
-    color: #4a4a4a;
-    text-align: center;
-    margin-bottom: 20px;
-}
+        h1, h2, h3 {
+            color: #4a4a4a;
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-#map {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 20px auto;
-    width: 40%;
-    max-width: 400px;
-    height: 200px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+        #map {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 20px auto;
+            width: 40%;
+            max-width: 400px;
+            height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-#nearestERs {
-    list-style-type: none;
-    padding: 0;
-    margin: 20px auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 800px;
-    width: 80%;
-}
+        #nearestERs {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            width: 80%;
+        }
 
-#nearestERs li {
-    margin-bottom: 20px;
-    font-weight: bold;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 8px;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-}
+        #nearestERs li {
+            margin-bottom: 20px;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
 
-#nearestERs button {
-    background-color: #2196F3;
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
+        #nearestERs button {
+            background-color: #2196F3;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-#zipForm {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
+        #zipForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
-#zipForm label,
-#zipForm input[type="text"],
-#zipForm button {
-    margin-bottom: 10px;
-    width: 80%;
-    max-width: 400px;
-    padding: 10px;
-    border-radius: 4px;
-}
+        #zipForm label,
+        #zipForm input[type="text"],
+        #zipForm button {
+            margin-bottom: 10px;
+            width: 80%;
+            max-width: 400px;
+            padding: 10px;
+            border-radius: 4px;
+        }
 
-#zipForm input[type="text"] {
-    border: 1px solid #ccc;
-}
+        #zipForm input[type="text"] {
+            border: 1px solid #ccc;
+        }
 
-#zipForm button {
-    background-color: #2196F3;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
+        #zipForm button {
+            background-color: #2196F3;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +106,7 @@ h1, h2, h3 {
     <script>
         var map;
         var markers = [];
+
         function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 12,
@@ -121,6 +121,7 @@ h1, h2, h3 {
             });
             marker.setMap(map);
         }
+
         function handleLoginResponse(response) {
             if (response.redirect) {
                 window.location.href = response.redirect;
@@ -129,6 +130,7 @@ h1, h2, h3 {
                 console.error(response.message);
             }
         }
+
         function performLogin(zipcode) {
             var data = {
                 zipcode: zipcode
@@ -144,6 +146,7 @@ h1, h2, h3 {
                 .then(handleLoginResponse)
                 .catch(error => console.error('Error:', error));
         }
+
         function getLocation() {
             var zipCode = document.getElementById("zip").value;
             // Use the Geocoding API to get the location based on the entered ZIP code
@@ -172,6 +175,7 @@ h1, h2, h3 {
                 }
             });
         }
+
         function fetchNearbyERs(location) {
             var service = new google.maps.places.PlacesService(map);
             // Specify the search parameters
@@ -192,45 +196,44 @@ h1, h2, h3 {
             });
         }
 
-        
         function displayResults(results) {
-    var ul = document.getElementById('nearestERs');
-    ul.innerHTML = ''; // Clear previous results
-    for (var i = 0; i < results.length; i++) {
-        var place = results[i];
-        var li = document.createElement('li');
-        li.textContent = place.name;
+            var ul = document.getElementById('nearestERs');
+            ul.innerHTML = ''; // Clear previous results
+            for (var i = 0; i < results.length; i++) {
+                var place = results[i];
+                var li = document.createElement('li');
+                li.textContent = place.name;
 
-        // Create a "Book Appointment" button
-        var bookButton = document.createElement('button');
-        bookButton.textContent = 'Book Appointment';
-        bookButton.onclick = function () {
-            // You can add logic here to handle booking appointment for the specific ER
-            alert('Booking appointment for ' + place.name);
-        };
+                // Create a "Book Appointment" button
+                var bookButton = document.createElement('button');
+                bookButton.textContent = 'Book Appointment';
+                bookButton.onclick = function () {
+                    // You can add logic here to handle booking appointment for the specific ER
+                    // Replace with your logic to get the user_name
+                    bookAppointment('069b5064-ff05-2225-3995-f32685518bc6');
+                };
 
-        // Append the button to the list item
-        li.appendChild(bookButton);
+                // Append the button to the list item
+                li.appendChild(bookButton);
 
-        // Add markers for each result
-        var marker = new google.maps.Marker({
-            map: map,
-            position: place.geometry.location,
-            title: place.name
-        });
-        markers.push(marker);
+                // Add markers for each result
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location,
+                    title: place.name
+                });
+                markers.push(marker);
 
-        // Append the list item to the unordered list
-        ul.appendChild(li);
-    }
+                // Append the list item to the unordered list
+                ul.appendChild(li);
+            }
 
-    // Set the list item to have flexbox with justify-content: space-between
-    ul.querySelectorAll('li').forEach(function (li) {
-        li.style.display = 'flex';
-        li.style.justifyContent = 'space-between';
-    });
-}
-
+            // Set the list item to have flexbox with justify-content: space-between
+            ul.querySelectorAll('li').forEach(function (li) {
+                li.style.display = 'flex';
+                li.style.justifyContent = 'space-between';
+            });
+        }
 
         function clearMarkers() {
             for (var i = 0; i < markers.length; i++) {
@@ -238,10 +241,34 @@ h1, h2, h3 {
             }
             markers = [];
         }
-        document.getElementById("zipForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            getLocation(); // Call getLocation on form submission
-        });
+        function bookAppointment(userId) {
+        // Send a POST request to your server to update the Appointments table
+        var data = { user_id: userId }; // Wrap the userName in an object
+
+    fetch('/book_appointment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Appointment booked successfully!');
+            } else {
+                alert('Failed to book appointment. Please try again.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+document.getElementById("zipForm").addEventListener("submit", function (event) {
+    event.preventDefault();
+    getLocation(); // Call getLocation on form submission
+});
+
+
         initMap();
     </script>
 </body>

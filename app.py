@@ -19,8 +19,14 @@ class User(db.Model):
 class Appointments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.String(50),unique=True, nullable=False)
-    medical_history = db.Column(db.String(500), nullable=False)
-    current_problem = db.Column(db.String(500), nullable=False)
+    medical_history = db.Column(db.String(1000), nullable=False)
+    current_problem = db.Column(db.String(1000), nullable=False)
+
+class EhrSummary(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, nullable=False)
+    summary = db.Column(db.String(255), nullable=False)
+
 
 
 
@@ -110,6 +116,43 @@ def remove_appointment(patient_id):
         response = {'success': False, 'message': 'Error: {}'.format(str(e))}
         return jsonify(response), 500
 
+@app.route('/book_appointment', methods=['POST'])
+def book_appointment():
+    try:
+        # Assuming you're passing user_id in the request
+        user_id = request.json.get('user_id')
+
+        # Fetch the user from the database
+        user = User.query.filter_by(user_id= user_id).first()
+
+        if user:
+            # Assuming you have a way to get patient_id associated with the user (replace with your logic)
+            
+            # Fetch the EhrSummary based on the patient_id
+            ehr_summary = EhrSummary.query.filter_by(patient_id=user_id).first()
+
+            if ehr_summary:
+                # Create a new appointment
+                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary)
+
+                # Add and commit to the database
+                db.session.add(appointment)
+                db.session.commit()
+
+                print('Appointment booked successfully!')
+                return jsonify({'success': True, 'message': 'Appointment booked successfully!'})
+            else:
+                print('No EhrSummary found for the user.')
+                return jsonify({'success': False, 'message': 'No EhrSummary found for the user.'})
+        else:
+            print('User not found.')
+            return jsonify({'success': False, 'message': 'User not found.'})
+
+    except Exception as e:
+        print('Error:', str(e))
+        return jsonify({'success': False, 'message': str(e)})
+
+    
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
