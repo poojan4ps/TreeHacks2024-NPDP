@@ -96,7 +96,7 @@
 </head>
 <body>
     <nav></nav>
-    <h2>Welcome to the Dashboard</h2>
+    <h1>Book an appointment at closest ER</h1>
     <form id="zipForm">
         <label for="zip">Enter your ZIP code:</label>
         <input type="text" id="zip" name="zip" required>
@@ -214,7 +214,7 @@
                 bookButton.onclick = function () {
                     // You can add logic here to handle booking appointment for the specific ER
                     // Replace with your logic to get the user_name
-                    var bookingReason = prompt("Please enter your booking reason:");
+                    var bookingReason = prompt("What problem are you facing? (Describe your symptoms)");
 
                     if (bookingReason !== null && bookingReason !== "") {
                         // Get the user ID (replace with your logic)
