@@ -127,6 +127,15 @@
                 .catch(error => console.error('Error:', error));
         });
 
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/[&<"']/g, match => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match]));
+        }
+
         function handleLoginResponse(response) {
             if (response.redirect) {
                 window.location.href = response.redirect;
@@ -137,49 +146,70 @@
         }
 
         function displayAppointments(appointments) {
-            var appointmentsList = document.getElementById('appointmentsList');
+    var appointmentsList = document.getElementById('appointmentsList');
+    appointments.forEach((appointment, index) => {
+        var li = document.createElement('li');
+        li.classList.add('appointment');
 
-            appointments.forEach((appointment, index) => {
-                var li = document.createElement('li');
-                li.classList.add('appointment');
+        var div = document.createElement('div');
+        div.classList.add('appointment-info');
+        console.log(appointment)
+        div.innerText = `Patient Name: ${appointment.user_name}\n`;
 
-                li.innerHTML = `
-                    <div class="appointment-info">
-                        <strong>Patient Name:</strong> ${appointment.patient_id}<br>
-                    </div>
-                    <button onclick="openModal('${appointment.patient_id}','${appointment.medical_history}','${appointment.current_problem}')">View Appointment</button>
-                `;
+        // Replace newline characters with line breaks
+        var medicalHistoryWithBreaks = appointment.medical_history.trim();
+        var currentProblemWithBreaks = appointment.current_problem.trim();
 
-                appointmentsList.appendChild(li);
-            });
-        }
+        var button = document.createElement('button');
+        button.textContent = 'View Appointment';
+        button.addEventListener('click', function() {
+            openModal(appointment.patient_id, medicalHistoryWithBreaks, currentProblemWithBreaks);
+        });
 
-        function openModal(appointmentId, medicalHistory, currentProblem) {
-            // Fetch patient information based on the appointmentId
-            // Replace this with your logic to fetch and display patient info
-            var patientInfo = `Patient ID: ${appointmentId} <br>
-                               Medical History:  ${medicalHistory}<br>
-                               Current Problem:  ${currentProblem}`;
+        li.appendChild(div);
+        li.appendChild(button);
 
-            // Add the "Pick Patient" button inside the modal content
-            document.getElementById('patientInfo').innerHTML = `<button onclick="pickPatient('${appointmentId}')">Pick Patient</button>`;
-            document.getElementById('patientInfo').innerHTML += patientInfo;
+        appointmentsList.appendChild(li);
+    });
+}
 
-            // Display the modal
-            document.getElementById('myModal').style.display = 'block';
-        }
 
-        function closeModal() {
-            document.getElementById('myModal').style.display = 'none';
-        }
 
-        // Close the modal if the user clicks anywhere outside the modal
-        window.onclick = function(event) {
-            var modal = document.getElementById('myModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        };
+
+
+function openModal(appointmentId, medicalHistory, currentProblem) {
+    // Check if values are null and replace with "No value"
+    appointmentId = appointmentId || 'No value';
+    medicalHistory = medicalHistory || 'No value';
+    currentProblem = currentProblem || 'No value';
+
+    // Fetch patient information based on the appointmentId
+    // Replace this with your logic to fetch and display patient info
+    var patientInfo = `Patient ID: ${appointmentId} <br>
+                    Medical History:  ${medicalHistory.replace(/\n/g, '<br>')}<br>
+                    Current Problem:  ${currentProblem.replace(/\n/g, '<br>')}`;
+
+    // Clear existing content and then add the new content
+    var patientInfoContainer = document.getElementById('patientInfo');
+    patientInfoContainer.innerHTML = `<button onclick="pickPatient('${appointmentId}')">Pick Patient</button>`;
+    patientInfoContainer.innerHTML += patientInfo;
+
+    // Display the modal
+    document.getElementById('myModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('myModal').style.display = 'none';
+}
+
+// Close the modal if the user clicks anywhere outside the modal
+window.onclick = function(event) {
+    var modal = document.getElementById('myModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+};
+
 
         function pickPatient(appointmentId) {
             // Add logic to remove the data of the user from the appointments table

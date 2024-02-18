@@ -23,6 +23,7 @@ class Appointments(db.Model):
     patient_id = db.Column(db.String(50),unique=True, nullable=False)
     medical_history = db.Column(db.String(1000), nullable=False)
     current_problem = db.Column(db.String(1000), nullable=False)
+    user_name = db.Column(db.String(50), nullable=False)
 
 class EhrSummary(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -96,7 +97,8 @@ def get_appointments():
         {
             'patient_id': appointment.patient_id,
             'medical_history': appointment.medical_history,
-            'current_problem': appointment.current_problem
+            'current_problem': appointment.current_problem,
+            'user_name' : appointment.user_name
         }
         for appointment in appointments
     ]
@@ -129,7 +131,7 @@ def book_appointment():
     try:
         # Assuming you're passing user_id in the request
         user_id = request.json.get('user_id')
-        booking_reason = request.get('booking_reason')
+        booking_reason = request.json.get('booking_reason')
         # Fetch the user from the database
         user = User.query.filter_by(user_id= user_id).first()
 
@@ -141,8 +143,9 @@ def book_appointment():
 
             if ehr_summary:
                 # Create a new appointment
-                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary,
-                                           current_problem = booking_reason)
+
+                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary,user_name=user.username,current_problem = booking_reason)
+
 
                 # Add and commit to the database
                 db.session.add(appointment)
