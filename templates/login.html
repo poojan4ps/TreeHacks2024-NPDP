@@ -4,20 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
+    <!-- Include Material-UI CSS -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mui/material@5.3.5/dist/umd/material.css" integrity="sha384-pzjw8e+1LDHDqO7svoM8jU2MsZIuI8xqDMYlBsdaDI9fNvr3P+qA1cCE1s/dxDuT" crossorigin="anonymous">
 </head>
-<body>
-    <h2>Login</h2>
-    <form id="loginForm">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <button type="button" onclick="performLogin()">Login</button>
-    </form>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+        background: linear-gradient(to right, #2980B9, #6DD5FA);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
 
-    <p id="message"></p>
+    h2 {
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 18px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    a {
+        text-decoration: none;
+        color: #fff;
+        padding: 10px 20px;
+        font-size: 18px;
+        border: 2px solid #fff;
+        border-radius: 5px;
+        margin: 10px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    a:hover {
+        background-color: #fff;
+        color: #2980B9;
+    }
+</style>
+<body>
+    <h2>Welcome to Healthcare Hub</h2>
+    <p>Your one-stop solution for finding the nearest emergency rooms and scheduling appointments with ease.</p>
+    <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
+        <h2 style="margin-bottom: 20px;">Login</h2>
+        <form id="loginForm" style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required style="padding: 10px;">
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required style="padding: 10px;">
+            
+            <button type="button" onclick="performLogin()" style="padding: 10px; background-color: #1976D2; color: white; border: none; cursor: pointer;">Login</button>
+        </form>
+        
+        <p id="message" style="margin-top: 20px; color: red;"></p>
+    </div>
 
     <script>
         function handleLoginResponse(response) {
