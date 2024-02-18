@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 # PostgreSQL Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@tree-hacks-ehr-data.cn8kq2284drd.us-east-1.rds.amazonaws.com/'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@tree-hacks-ehr-data.cn8kq2284drd.us-east-1.rds.amazonaws.com/ehr_database'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -21,6 +21,7 @@ class Appointments(db.Model):
     patient_id = db.Column(db.String(50),unique=True, nullable=False)
     medical_history = db.Column(db.String(1000), nullable=False)
     current_problem = db.Column(db.String(1000), nullable=False)
+    user_name = db.Column(db.String(50), nullable=False)
 
 class EhrSummary(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -133,7 +134,7 @@ def book_appointment():
 
             if ehr_summary:
                 # Create a new appointment
-                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary)
+                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary,user_name=user.username)
 
                 # Add and commit to the database
                 db.session.add(appointment)
