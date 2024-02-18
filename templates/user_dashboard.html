@@ -9,7 +9,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background: linear-gradient(to right, #2980B9, #6DD5FA);
+            color: #fff;
             padding: 20px;
             margin: 0;
         }
@@ -52,11 +53,12 @@
             width: 100%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             background-color: #fff;
+            color: #2980B9;
         }
 
         #nearestERs button {
-            background-color: #2196F3;
-            color: #fff;
+            background-color: #fff;
+            color: #2980B9;
             border: none;
             padding: 5px 10px;
             border-radius: 4px;
@@ -85,23 +87,25 @@
         }
 
         #zipForm button {
-            background-color: #2196F3;
-            color: #fff;
+            background-color: #fff;
+            color: #2980B9;
             border: none;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
+    <nav></nav>
     <h2>Welcome to the Dashboard</h2>
     <form id="zipForm">
         <label for="zip">Enter your ZIP code:</label>
         <input type="text" id="zip" name="zip" required>
         <button type="button" onclick="getLocation()">Submit</button>
     </form>
-    <p id="location">Your location will be displayed here.</p>
     <div id="map" class="map"></div>
-    <h3>Nearest Emergency Rooms:</h3>
+    <div style="text-align: center;">
+        <h3 style="display: inline;">Nearest Emergency Rooms (<p id="location" style="display: inline;"></p>):</h3>
+    </div>
     <ul id="nearestERs"></ul>
     <script>
         var map;
@@ -210,7 +214,16 @@
                 bookButton.onclick = function () {
                     // You can add logic here to handle booking appointment for the specific ER
                     // Replace with your logic to get the user_name
-                    bookAppointment('069b5064-ff05-2225-3995-f32685518bc6');
+                    var bookingReason = prompt("Please enter your booking reason:");
+
+                    if (bookingReason !== null && bookingReason !== "") {
+                        // Get the user ID (replace with your logic)
+                        var userId = '069b5064-ff05-2225-3995-f32685518bc6';  //remove when you get session id
+        
+                        // Pass user ID, place name, and reason to bookAppointment function
+                        bookAppointment(userId,  bookingReason);
+                    }
+                    
                 };
 
                 // Append the button to the list item
@@ -241,9 +254,9 @@
             }
             markers = [];
         }
-        function bookAppointment(userId) {
+        function bookAppointment(userId , bookingReason) {
         // Send a POST request to your server to update the Appointments table
-        var data = { user_id: userId }; // Wrap the userName in an object
+        var data = { user_id: userId  , booking_reason:bookingReason}; // Wrap the userName in an object
 
     fetch('/book_appointment', {
         method: 'POST',
@@ -270,6 +283,8 @@ document.getElementById("zipForm").addEventListener("submit", function (event) {
 
 
         initMap();
+        
     </script>
+    <script type="text/javascript" src="https://bot.insertchatgpt.com/widgets/bubble.js?widget_id=b3741d95-8b51-46fb-ac78-4f9ef4982e11" async></script>
 </body>
 </html>

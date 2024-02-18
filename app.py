@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify, render_template,redirect, url_for
+from flask import Flask, request, jsonify, render_template,redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
+app.secret_key = "super secret key"
 
 # PostgreSQL Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@tree-hacks-ehr-data.cn8kq2284drd.us-east-1.rds.amazonaws.com/ehr_database'
@@ -28,12 +30,18 @@ class EhrSummary(db.Model):
     patient_id = db.Column(db.Integer, nullable=False)
     summary = db.Column(db.String(255), nullable=False)
 
-
-
-
 @app.route('/')
 def index():
+    return render_template('home.html')
+
+@app.route('/login')
+def login():
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    # Clear the session and redirect to the home page
+    return redirect(url_for('index'))
 
 @app.route('/user_dashboard')
 def user_dashboard():
@@ -45,7 +53,7 @@ def hospital_dashboard():  # Change the function name
 
 
 @app.route('/login', methods=['POST'])
-def login():
+def login_post():
     if request.method == 'POST':
         try:
             # Assuming your front-end sends data as JSON
@@ -60,9 +68,9 @@ def login():
 
             # Query the database for the user
             user = User.query.filter_by(username=username).first()
-
             if user and user.password == password:
                 # Successful login
+                session['user_id'] = user.id
                 if user.user_type == 'user':
                     response = {'message': 'Login successful', 'redirect': url_for('user_dashboard')}
                     return jsonify(response), 200
@@ -122,7 +130,7 @@ def book_appointment():
     try:
         # Assuming you're passing user_id in the request
         user_id = request.json.get('user_id')
-
+        booking_reason = request.get('booking_reason')
         # Fetch the user from the database
         user = User.query.filter_by(user_id= user_id).first()
 
@@ -134,7 +142,9 @@ def book_appointment():
 
             if ehr_summary:
                 # Create a new appointment
-                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary,user_name=user.username)
+
+                appointment = Appointments(patient_id=user_id, medical_history=ehr_summary.summary,user_name=user.username,current_problem = booking_reason)
+
 
                 # Add and commit to the database
                 db.session.add(appointment)
@@ -153,7 +163,37 @@ def book_appointment():
         print('Error:', str(e))
         return jsonify({'success': False, 'message': str(e)})
 
-    
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+@app.route('/signup', methods=['POST'])
+def signup_post():
+    if request.method == 'POST':
+        try:
+            # Assuming your front-end sends data as JSON
+            data = request.get_json()
+
+            # Get username and password from the request
+            username = data.get('username')
+            password = data.get('password')
+
+            # Query the database for the user
+            user = User.query.filter_by(username=username).first()
+
+            if user and user.username == username:
+                # Invalid signup
+                return jsonify({"message": "User already exists!"}), 401
+            else:
+                # Valid Signup
+                new_user = User(username=username, password=password)
+                db.session.add(new_user)
+                db.session.commit()
+                return jsonify({"message": "Signup successful!"})
+
+        except Exception as e:
+            return jsonify({"message": "Error: {}".format(str(e))}, 500)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
