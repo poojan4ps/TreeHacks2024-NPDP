@@ -9,7 +9,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background: linear-gradient(to right, #2980B9, #6DD5FA);
+            color: #fff;
             padding: 20px;
             margin: 0;
         }
@@ -52,11 +53,12 @@
             width: 100%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             background-color: #fff;
+            color: #2980B9;
         }
 
         #nearestERs button {
-            background-color: #2196F3;
-            color: #fff;
+            background-color: #fff;
+            color: #2980B9;
             border: none;
             padding: 5px 10px;
             border-radius: 4px;
@@ -85,23 +87,25 @@
         }
 
         #zipForm button {
-            background-color: #2196F3;
-            color: #fff;
+            background-color: #fff;
+            color: #2980B9;
             border: none;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
+    <nav></nav>
     <h2>Welcome to the Dashboard</h2>
     <form id="zipForm">
         <label for="zip">Enter your ZIP code:</label>
         <input type="text" id="zip" name="zip" required>
         <button type="button" onclick="getLocation()">Submit</button>
     </form>
-    <p id="location" style="text-align: center;">Your location will be displayed here.</p>
     <div id="map" class="map"></div>
-    <h3>Nearest Emergency Rooms:</h3>
+    <div style="text-align: center;">
+        <h3 style="display: inline;">Nearest Emergency Rooms (<p id="location" style="display: inline;"></p>):</h3>
+    </div>
     <ul id="nearestERs"></ul>
     <script>
         var map;
