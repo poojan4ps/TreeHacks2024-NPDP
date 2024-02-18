@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Add this script tag to the head section of your HTML file -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJGiMif1S18Ks4F4CfUM5-tse-RnfGXZo&callback=initMap&libraries=places&v=weekly"></script>
+
+    <title>Dashboard</title>
+</head>
+<style type="text/css">
+    h1 {
+        text-align: center;
+    }
+    .map {
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40%;
+        height: 350px;
+        border: 0;
+    }
+    #nearestERs {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    #nearestERs li {
+        margin-bottom: 20px; /* Increased margin for space */
+        font-weight: bold;
+        display: flex; /* Use flexbox for better control over layout */
+        align-items: center; /* Center items vertically */
+    }
+
+    #nearestERs li button {
+        margin-left: 10px; /* Adjust as needed to control space between button and text */
+    }
+</style>
+<body>
+    <h2>Welcome to the Dashboard</h2>
+    <form id="zipForm">
+        <label for="zip">Enter your ZIP code:</label>
+        <input type="text" id="zip" name="zip" required>
+        <button type="button" onclick="getLocation()">Submit</button>
+    </form>
+    
+    
+    <p id="location">Your location will be displayed here.</p>
+    <div id="map" class="map"></div>
+    <h3>Nearest Emergency Rooms:</h3>
+    <ul id="nearestERs"></ul>
+
+    <script>
+        var map;
+        var markers = [];
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: { lat: 37.7749, lng: -122.4194 }, // Default to Stanford if no location is selected
+                draggable: true
+            });
+
+            // Adding the default marker at Stanford
+            var marker = new google.maps.Marker({
+                position: { lat: 37.7749, lng: -122.4194 },
+                map: map,
+                draggable: false
+            });
+
+            marker.setMap(map);
+        }
+
+        function handleLoginResponse(response) {
+            if (response.redirect) {
+                window.location.href = response.redirect;
+            } else {
+                // Handle other responses as needed
+                console.error(response.message);
+            }
+        }
+
+        function performLogin(zipcode) {
+            var data = {
+                zipcode: zipcode
+            };
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(handleLoginResponse)
+                .catch(error => console.error('Error:', error));
+        }
+
+        function getLocation() {
+            var zipCode = document.getElementById("zip").value;
+
+            // Use the Geocoding API to get the location based on the entered ZIP code
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ 'address': zipCode }, function (results, status) {
+                if (status === 'OK' && results[0].geometry.location) {
+                    var location = results[0].geometry.location;
+                    document.getElementById("location").innerText = "Location: " + location.lat() + ", " + location.lng();
+
+                    // Update the map to the new location
+                    map.setCenter(location);
+
+                    // Remove previous markers
+                    clearMarkers();
+
+                    // Adding the marker at the new location
+                    var marker = new google.maps.Marker({
+                        position: location,
+                        map: map,
+                        draggable: false
+                    });
+
+                    marker.setMap(map);
+
+                    // Fetch and display the nearest ERs
+                    fetchNearbyERs(location);
+                    
+                    // Perform login with the new location (if needed)
+                    performLogin(zipCode);
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        function fetchNearbyERs(location) {
+            var service = new google.maps.places.PlacesService(map);
+
+            // Specify the search parameters
+            var request = {
+                location: location,
+                radius: 5000, // Search within a 5km radius
+                type: 'hospital',
+                keyword: 'emergency room'
+            };
+
+            // Perform the nearby search
+            service.nearbySearch(request, function (results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    // Display the results on the map and as a list
+                    displayResults(results);
+                } else {
+                    console.error('Nearby search failed with status: ' + status);
+                }
+            });
+        }
+
+        function displayResults(results) {
+    var ul = document.getElementById('nearestERs');
+    ul.innerHTML = ''; // Clear previous results
+
+    for (var i = 0; i < results.length; i++) {
+        var place = results[i];
+        var li = document.createElement('li');
+        li.textContent = place.name;
+
+        // Create a "Book Appointment" button
+        var bookButton = document.createElement('button');
+        bookButton.textContent = 'Book Appointment';
+        bookButton.onclick = function () {
+            // You can add logic here to handle booking appointment for the specific ER
+            alert('Booking appointment for ' + place.name);
+        };
+
+        // Append the button to the list item
+        li.appendChild(bookButton);
+
+        // Append the list item to the unordered list
+        ul.appendChild(li);
+
+        // Add markers for each result
+        var marker = new google.maps.Marker({
+            map: map,
+            position: place.geometry.location,
+            title: place.name
+        });
+
+        markers.push(marker);
+    }
+}
+
+
+        function clearMarkers() {
+            for (var i = 0; i < markers.length; i++) {
+                markers[i].setMap(null);
+            }
+            markers = [];
+        }
+
+        document.getElementById("zipForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            getLocation(); // Call getLocation on form submission
+        });
+
+        initMap();
+    </script>
+   
+</body>
+</html>

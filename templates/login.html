@@ -14,33 +14,40 @@
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
         <br>
-        <button type="button" onclick="login()">Login</button>
+        <button type="button" onclick="performLogin()">Login</button>
     </form>
 
     <p id="message"></p>
 
     <script>
-        function login() {
+        function handleLoginResponse(response) {
+            if (response.redirect) {
+                window.location.href = response.redirect;
+            } else {
+                // Handle other responses as needed
+                document.getElementById("message").innerText = response.message;
+            }
+        }
+
+        function performLogin() {
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
+
+            var data = {
+                username: username,
+                password: password
+            };
 
             fetch('/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                })
+                body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => {
-                document.getElementById("message").innerText = data.message;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            .then(handleLoginResponse)
+            .catch(error => console.error('Error:', error));
         }
     </script>
 </body>

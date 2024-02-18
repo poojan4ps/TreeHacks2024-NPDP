@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template,redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -19,12 +19,20 @@ class User(db.Model):
 def index():
     return render_template('login.html')
 
+@app.route('/user_dashboard')
+def user_dashboard():
+    return render_template('user_dashboard.html')
+
+
 @app.route('/login', methods=['POST'])
 def login():
     if request.method == 'POST':
         try:
             # Assuming your front-end sends data as JSON
             data = request.get_json()
+
+            # Print received data for debugging
+            print("Received data:", data)
 
             # Get username and password from the request
             username = data.get('username')
@@ -35,13 +43,16 @@ def login():
 
             if user and user.password == password:
                 # Successful login
-                return jsonify({"message": "Login successful"})
+                response = {'message': 'Login successful', 'redirect': url_for('user_dashboard')}
+                return jsonify(response), 200
             else:
                 # Invalid credentials
-                return jsonify({"message": "Invalid credentials"}), 401
+                response = {'message': 'Invalid credentials'}
+                return jsonify(response), 401
 
         except Exception as e:
-            return jsonify({"message": "Error: {}".format(str(e))}, 500)
+            response = {'message': 'Error: {}'.format(str(e))}
+            return jsonify(response), 500
 
 if __name__ == '__main__':
     with app.app_context():
