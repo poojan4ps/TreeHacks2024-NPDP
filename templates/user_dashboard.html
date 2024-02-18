@@ -191,6 +191,8 @@ h1, h2, h3 {
                 }
             });
         }
+
+        
         function displayResults(results) {
     var ul = document.getElementById('nearestERs');
     ul.innerHTML = ''; // Clear previous results
@@ -209,8 +211,6 @@ h1, h2, h3 {
 
         // Append the button to the list item
         li.appendChild(bookButton);
-        // Append the list item to the unordered list
-        ul.appendChild(li);
 
         // Add markers for each result
         var marker = new google.maps.Marker({
@@ -219,6 +219,9 @@ h1, h2, h3 {
             title: place.name
         });
         markers.push(marker);
+
+        // Append the list item to the unordered list
+        ul.appendChild(li);
     }
 
     // Set the list item to have flexbox with justify-content: space-between
@@ -227,6 +230,7 @@ h1, h2, h3 {
         li.style.justifyContent = 'space-between';
     });
 }
+
 
         function clearMarkers() {
             for (var i = 0; i < markers.length; i++) {
