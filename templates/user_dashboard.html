@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <!-- Add this script tag to the head section of your HTML file -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap&libraries=places&v=weekly"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJGiMif1S18Ks4F4CfUM5-tse-RnfGXZo&callback=initMap&libraries=places&v=weekly"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -99,7 +99,7 @@
         <input type="text" id="zip" name="zip" required>
         <button type="button" onclick="getLocation()">Submit</button>
     </form>
-    <p id="location">Your location will be displayed here.</p>
+    <p id="location" style="text-align: center;">Your location will be displayed here.</p>
     <div id="map" class="map"></div>
     <h3>Nearest Emergency Rooms:</h3>
     <ul id="nearestERs"></ul>
@@ -210,7 +210,16 @@
                 bookButton.onclick = function () {
                     // You can add logic here to handle booking appointment for the specific ER
                     // Replace with your logic to get the user_name
-                    bookAppointment('069b5064-ff05-2225-3995-f32685518bc6');
+                    var bookingReason = prompt("Please enter your booking reason:");
+
+                    if (bookingReason !== null && bookingReason !== "") {
+                        // Get the user ID (replace with your logic)
+                        var userId = '069b5064-ff05-2225-3995-f32685518bc6';  //remove when you get session id
+        
+                        // Pass user ID, place name, and reason to bookAppointment function
+                        bookAppointment(userId,  bookingReason);
+                    }
+                    
                 };
 
                 // Append the button to the list item
@@ -241,9 +250,9 @@
             }
             markers = [];
         }
-        function bookAppointment(userId) {
+        function bookAppointment(userId , bookingReason) {
         // Send a POST request to your server to update the Appointments table
-        var data = { user_id: userId }; // Wrap the userName in an object
+        var data = { user_id: userId  , booking_reason:bookingReason}; // Wrap the userName in an object
 
     fetch('/book_appointment', {
         method: 'POST',
