@@ -67,7 +67,12 @@ git clone <url>
 source /venv/bin/activate
 ```
 
-3. Run the Flask Server
+3. Install Requirements
+```
+pip3 install rerquirements
+```
+
+4. Run the Flask Server
 ```
 python3 app.py
 ```
