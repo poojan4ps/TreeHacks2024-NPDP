@@ -7,80 +7,90 @@
     <!-- Add this script tag to the head section of your HTML file -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJGiMif1S18Ks4F4CfUM5-tse-RnfGXZo&callback=initMap&libraries=places&v=weekly"></script>
     <style> 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            padding: 20px;
-            margin: 0;
-        } 
-        h1, h2, h3 {
-            color: #4a4a4a;
-            text-align: center;
-            margin-bottom: 20px;
-        } 
-        #map { 
-            background-color: #fff;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 20px auto;
-            width: 40%;
-            max-width: 400px;
-            height: 200px;
-        } 
-        
+       body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    padding: 20px;
+    margin: 0;
+}
 
-        #nearestERs { 
-            list-style-type: none;
-            padding: 0;
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 800px;
-            width: 80%;
-        } 
-        #nearestERs li { 
-            margin-bottom: 20px;
-            font-weight: bold;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 4px;
-            width: 100%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        } 
-        #nearestERs button { 
-            background-color: #2196F3;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        } 
-        #zipForm { 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        } 
-        #zipForm label, 
-        #zipForm input[type="text"],
-        #zipForm button { 
-            margin-bottom: 10px;
-            width: 80%;
-            max-width: 400px;
-            padding: 10px;
-            border-radius: 4px;
-        } 
-        #zipForm input[type="text"] { 
-            border: 1px solid #ccc;
-        } 
-        #zipForm button { 
-            background-color: #2196F3;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        } 
+h1, h2, h3 {
+    color: #4a4a4a;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#map {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 20px auto;
+    width: 40%;
+    max-width: 400px;
+    height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#nearestERs {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 800px;
+    width: 80%;
+}
+
+#nearestERs li {
+    margin-bottom: 20px;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+#nearestERs button {
+    background-color: #2196F3;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#zipForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#zipForm label,
+#zipForm input[type="text"],
+#zipForm button {
+    margin-bottom: 10px;
+    width: 80%;
+    max-width: 400px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#zipForm input[type="text"] {
+    border: 1px solid #ccc;
+}
+
+#zipForm button {
+    background-color: #2196F3;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
     </style>
 </head>
 <body>
