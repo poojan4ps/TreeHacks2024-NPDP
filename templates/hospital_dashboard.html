@@ -153,7 +153,8 @@
 
         var div = document.createElement('div');
         div.classList.add('appointment-info');
-        div.innerText = `Patient Name: ${appointment.patient_id}\n`;
+        console.log(appointment)
+        div.innerText = `Patient Name: ${appointment.user_name}\n`;
 
         // Replace newline characters with line breaks
         var medicalHistoryWithBreaks = appointment.medical_history.trim();

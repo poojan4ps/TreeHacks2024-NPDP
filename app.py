@@ -97,7 +97,8 @@ def get_appointments():
         {
             'patient_id': appointment.patient_id,
             'medical_history': appointment.medical_history,
-            'current_problem': appointment.current_problem
+            'current_problem': appointment.current_problem,
+            'user_name' : appointment.user_name
         }
         for appointment in appointments
     ]
@@ -130,7 +131,7 @@ def book_appointment():
     try:
         # Assuming you're passing user_id in the request
         user_id = request.json.get('user_id')
-        booking_reason = request.get('booking_reason')
+        booking_reason = request.json.get('booking_reason')
         # Fetch the user from the database
         user = User.query.filter_by(user_id= user_id).first()
 
